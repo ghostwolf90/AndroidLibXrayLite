@@ -16,9 +16,9 @@ import (
 
 	mobasset "golang.org/x/mobile/asset"
 
-	v2core "github.com/xtls/xray-core/core"
 	v2net "github.com/xtls/xray-core/common/net"
 	v2filesystem "github.com/xtls/xray-core/common/platform/filesystem"
+	v2core "github.com/xtls/xray-core/core"
 	v2stats "github.com/xtls/xray-core/features/stats"
 	v2serial "github.com/xtls/xray-core/infra/conf/serial"
 	_ "github.com/xtls/xray-core/main/distro/all"
@@ -248,7 +248,7 @@ func NewV2RayPoint(s V2RayVPNServiceSupportsSet, adns bool) *V2RayPoint {
 This func will return libv2ray binding version and V2Ray version used.
 */
 func CheckVersionX() string {
-	var version  = 24
+	var version = 24
 	return fmt.Sprintf("Lib v%d, Xray-core v%s", version, v2core.Version())
 }
 
@@ -289,12 +289,26 @@ func measureInstDelay(ctx context.Context, inst *v2core.Instance) (int64, error)
 
 // This struct creates our own log writer without datatime stamp
 // As Android adds time stamps on each line
+
+// 全局日誌記錄器
+var logger *log.Logger
+
+// InitializeLogger 初始化日誌記錄器，使用提供的文件路徑
+func HelloLogger(logFilePath string) {
+	file, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("[DEBUG] 打開日誌文件失敗: %v", err)
+	}
+	logger = log.New(file, "", log.Ldate|log.Ltime|log.Lshortfile)
+}
+
 type consoleLogWriter struct {
 	logger *log.Logger
 }
 
 func (w *consoleLogWriter) Write(s string) error {
 	w.logger.Print(s)
+	logger.Print(s) //寫入.log檔案
 	return nil
 }
 
